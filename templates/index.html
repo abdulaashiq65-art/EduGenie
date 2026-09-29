@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EduGenie - AI Learning Assistant</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --bg: #f7f8fc;
+            --sidebar: #ffffff;
+            --border: #e5e7eb;
+            --text: #111827;
+            --muted: #6b7280;
+            --user-bg: #eef2ff;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* =====================================================
+           APP
+        ===================================================== */
+
+        .app {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
+        .sidebar {
+            width: 270px;
+            min-width: 270px;
+
+            background: var(--sidebar);
+
+            border-right: 1px solid var(--border);
+
+            display: flex;
+            flex-direction: column;
+
+            padding: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+
+            padding: 8px 6px 18px;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+
+            border-radius: 11px;
+
+            background: linear-gradient(
+                135deg,
+                #6366f1,
+                #4f46e5
+            );
+
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 20px;
+            font-weight: 700;
+
+            box-shadow:
+                0 5px 15px rgba(79, 70, 229, 0.25);
+        }
+
+        .brand-name {
+            font-size: 20px;
+            font-weight: 750;
+            color: var(--text);
+        }
+
+        .brand-name span {
+            color: var(--primary);
+        }
+
+        /* New chat */
+
+        .new-chat {
+            width: 100%;
+
+            padding: 12px 14px;
+
+            border: 1px solid #d9dcf5;
+            border-radius: 10px;
+
+            background: #f8f8ff;
+            color: var(--primary);
+
+            font-size: 14px;
+            font-weight: 650;
+
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+
+            transition: 0.2s;
+        }
+
+        .new-chat:hover {
+            background: #eeeeff;
+            border-color: #c7c9f3;
+        }
+
+        /* History */
+
+        .history-heading {
+            margin-top: 25px;
+            margin-bottom: 10px;
+
+            padding: 0 6px;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+
+            color: #9ca3af;
+        }
+
+        .conversation-list {
+            flex: 1;
+
+            overflow-y: auto;
+
+            padding-right: 2px;
+        }
+
+        .conversation-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .conversation-list::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+
+            width: 100%;
+
+            padding: 10px 9px;
+            margin-bottom: 4px;
+
+            border-radius: 9px;
+
+            color: #374151;
+
+            cursor: pointer;
+
+            transition: 0.15s;
+        }
+
+        .history-item:hover {
+            background: #f3f4f6;
+        }
+
+        .history-item.active {
+            background: #eef2ff;
+            color: var(--primary);
+        }
+
+        .history-icon {
+            width: 27px;
+            min-width: 27px;
+
+            font-size: 15px;
+        }
+
+        .history-title-text {
+            flex: 1;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            font-size: 13px;
+        }
+
+        .delete-chat-button {
+            border: none;
+            background: transparent;
+
+            width: 28px;
+            height: 28px;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+
+            opacity: 0;
+
+            transition: 0.15s;
+        }
+
+        .history-item:hover .delete-chat-button {
+            opacity: 1;
+        }
+
+        .delete-chat-button:hover {
+            background: #fee2e2;
+        }
+
+        /* Sidebar bottom */
+
+        .sidebar-bottom {
+            border-top: 1px solid var(--border);
+
+            padding-top: 12px;
+            margin-top: 10px;
+        }
+
+        .logout-button {
+            width: 100%;
+
+            border: none;
+            background: transparent;
+
+            padding: 11px;
+
+            border-radius: 9px;
+
+            cursor: pointer;
+
+            color: #4b5563;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            transition: 0.2s;
+        }
+
+        .logout-button:hover {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        /* =====================================================
+           MAIN
+        ===================================================== */
+
+        .main {
+            flex: 1;
+
+            min-width: 0;
+
+            display: flex;
+            flex-direction: column;
+
+            height: 100vh;
+        }
+
+        /* Top bar */
+
+        .topbar {
+            height: 64px;
+
+            flex-shrink: 0;
+
+            background: rgba(255, 255, 255, 0.92);
+
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 28px;
+        }
+
+        .topbar-title {
+            font-size: 15px;
+            font-weight: 650;
+            color: #374151;
+        }
+
+        .topbar-subtitle {
+            font-size: 12px;
+            color: var(--muted);
+
+            margin-top: 2px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #22c55e;
+        }
+
+        /* =====================================================
+           CHAT AREA
+        ===================================================== */
+
+        .chat-area {
+            flex: 1;
+
+            overflow-y: auto;
+
+            padding: 40px 20px 170px;
+        }
+
+        .chat-area::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        .chat-content {
+            width: min(850px, 100%);
+            margin: auto;
+        }
+
+        /* Welcome */
+
+        .welcome {
+            min-height: 420px;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+            justify-content: center;
+
+            text-align: center;
+        }
+
+        .welcome-icon {
+            width: 70px;
+            height: 70px;
+
+            border-radius: 20px;
+
+            background: linear-gradient(
+                135deg,
+                #6366f1,
+                #4f46e5
+            );
+
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 34px;
+
+            box-shadow:
+                0 12px 35px rgba(79, 70, 229, 0.25);
+
+            margin-bottom: 22px;
+        }
+
+        .welcome h1 {
+            font-size: 31px;
+            font-weight: 750;
+
+            margin-bottom: 10px;
+        }
+
+        .welcome p {
+            max-width: 550px;
+
+            color: var(--muted);
+
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+
+            justify-content: center;
+
+            gap: 9px;
+
+            margin-top: 27px;
+        }
+
+        .suggestion {
+            border: 1px solid var(--border);
+
+            background: white;
+
+            border-radius: 9px;
+
+            padding: 9px 13px;
+
+            color: #4b5563;
+
+            font-size: 12px;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .suggestion:hover {
+            border-color: #c7c9f3;
+            background: #f8f8ff;
+            color: var(--primary);
+        }
+
+        /* Messages */
+
+        .message {
+            display: flex;
+            gap: 14px;
+
+            margin-bottom: 28px;
+        }
+
+        .avatar {
+            width: 34px;
+            min-width: 34px;
+
+            height: 34px;
+
+            border-radius: 10px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .user-avatar {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .ai-avatar {
+            background: linear-gradient(
+                135deg,
+                #6366f1,
+                #4f46e5
+            );
+
+            color: white;
+        }
+
+        .message-body {
+            flex: 1;
+
+            min-width: 0;
+
+            padding-top: 2px;
+        }
+
+        .message-name {
+            font-size: 13px;
+            font-weight: 700;
+
+            margin-bottom: 7px;
+
+            color: #374151;
+        }
+
+        .message-text {
+            color: #374151;
+
+            font-size: 15px;
+
+            line-height: 1.75;
+
+            white-space: pre-wrap;
+
+            overflow-wrap: anywhere;
+        }
+
+        .user-message {
+            background: #f8f9ff;
+
+            border: 1px solid #edf0ff;
+
+            border-radius: 14px;
+
+            padding: 14px 16px;
+
+            margin-left: 48px;
+        }
+
+        .user-message .message-body {
+            padding-top: 0;
+        }
+
+        /* =====================================================
+           INPUT AREA
+        ===================================================== */
+
+        .input-wrapper {
+            position: fixed;
+
+            left: 270px;
+            right: 0;
+            bottom: 0;
+
+            padding: 18px 20px 20px;
+
+            background:
+                linear-gradient(
+                    to top,
+                    var(--bg) 70%,
+                    rgba(247, 248, 252, 0)
+                );
+        }
+
+        .input-content {
+            width: min(850px, 100%);
+            margin: auto;
+        }
+
+        .input-box {
+            background: white;
+
+            border: 1px solid #d9dce5;
+
+            border-radius: 15px;
+
+            box-shadow:
+                0 8px 30px rgba(0, 0, 0, 0.07);
+
+            display: flex;
+            align-items: flex-end;
+
+            padding: 8px;
+        }
+
+        textarea {
+            flex: 1;
+
+            border: none;
+            outline: none;
+
+            resize: none;
+
+            min-height: 45px;
+            max-height: 180px;
+
+            padding: 11px 12px;
+
+            font-family: inherit;
+
+            font-size: 15px;
+
+            line-height: 1.5;
+
+            color: var(--text);
+
+            background: transparent;
+        }
+
+        textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        .send-button {
+            width: 42px;
+            height: 42px;
+
+            border: none;
+
+            border-radius: 11px;
+
+            background: var(--primary);
+
+            color: white;
+
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 18px;
+
+            transition: 0.2s;
+        }
+
+        .send-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .send-button:disabled {
+            background: #c7c9d4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-hint {
+            text-align: center;
+
+            color: #9ca3af;
+
+            font-size: 11px;
+
+            margin-top: 8px;
+        }
+
+        .loading {
+            display: none;
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+            padding: 10px 0;
+        }
+
+        .loading-dots span {
+            animation: blink 1.4s infinite;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 60%, 100% {
+                opacity: 0.25;
+            }
+
+            30% {
+                opacity: 1;
+            }
+        }
+
+        .error {
+            display: none;
+
+            margin-bottom: 12px;
+
+            padding: 11px 14px;
+
+            border-radius: 9px;
+
+            background: #fef2f2;
+
+            border: 1px solid #fecaca;
+
+            color: #b91c1c;
+
+            font-size: 13px;
+        }
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        .mobile-menu {
+            display: none;
+
+            border: none;
+            background: transparent;
+
+            font-size: 22px;
+
+            cursor: pointer;
+        }
+
+        @media (max-width: 800px) {
+
+            .sidebar {
+                position: fixed;
+
+                z-index: 100;
+
+                left: -280px;
+
+                top: 0;
+                bottom: 0;
+
+                transition: left 0.25s ease;
+
+                box-shadow:
+                    8px 0 25px rgba(0, 0, 0, 0.08);
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .topbar {
+                padding: 0 16px;
+            }
+
+            .input-wrapper {
+                left: 0;
+
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .chat-area {
+                padding-top: 25px;
+            }
+
+            .welcome h1 {
+                font-size: 26px;
+            }
+
+            .welcome p {
+                font-size: 14px;
+            }
+
+            .user-message {
+                margin-left: 0;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ===================================================== -->
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                ✦
+            </div>
+
+            <div class="brand-name">
+                Edu<span>Genie</span>
+            </div>
+
+        </div>
+
+
+        <button
+            class="new-chat"
+            onclick="startNewChat()"
+        >
+            <span>＋</span>
+            New Chat
+        </button>
+
+
+        <div class="history-heading">
+            Recent Chats
+        </div>
+
+
+        <div
+            class="conversation-list"
+            id="conversationList"
+        >
+            Loading...
+        </div>
+
+
+        <div class="sidebar-bottom">
+
+            <button
+                class="logout-button"
+                onclick="logout()"
+            >
+
+                <span>🚪</span>
+
+                <span>
+                    Logout
+                </span>
+
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN
+    ===================================================== -->
+
+    <main class="main">
+
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div style="display:flex;align-items:center;gap:12px;">
+
+                <button
+                    class="mobile-menu"
+                    onclick="toggleSidebar()"
+                >
+                    ☰
+                </button>
+
+                <div>
+
+                    <div class="topbar-title">
+                        AI Learning Assistant
+                    </div>
+
+                    <div class="topbar-subtitle">
+                        Learn smarter with EduGenie
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="status">
+
+                <div class="status-dot"></div>
+
+                Online
+
+            </div>
+
+        </header>
+
+
+        <!-- CHAT -->
+
+        <section
+            class="chat-area"
+            id="chatArea"
+        >
+
+            <div class="chat-content">
+
+
+                <!-- WELCOME -->
+
+                <div
+                    class="welcome"
+                    id="welcome"
+                >
+
+                    <div class="welcome-icon">
+                        ✦
+                    </div>
+
+                    <h1>
+                        How can I help you learn?
+                    </h1>
+
+                    <p>
+                        Ask EduGenie anything.
+                        Get simple explanations,
+                        examples, ideas and
+                        step-by-step answers.
+                    </p>
+
+
+                    <div class="suggestions">
+
+                        <button
+                            class="suggestion"
+                            onclick="useSuggestion('Explain photosynthesis in simple words')"
+                        >
+                            🌱 Explain a concept
+                        </button>
+
+                        <button
+                            class="suggestion"
+                            onclick="useSuggestion('Give me a step-by-step explanation of Python functions')"
+                        >
+                            💻 Learn programming
+                        </button>
+
+                        <button
+                            class="suggestion"
+                            onclick="useSuggestion('Give me 5 important tips for exam preparation')"
+                        >
+                            📝 Exam preparation
+                        </button>
+
+                        <button
+                            class="suggestion"
+                            onclick="useSuggestion('Explain artificial intelligence with a simple example')"
+                        >
+                            🤖 Learn AI
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- MESSAGES -->
+
+                <div
+                    id="chatContainer"
+                ></div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             INPUT
+        ================================================= -->
+
+        <div class="input-wrapper">
+
+            <div class="input-content">
+
+
+                <div
+                    class="error"
+                    id="error"
+                ></div>
+
+
+                <div
+                    class="loading"
+                    id="loading"
+                >
+
+                    🤖 EduGenie is thinking
+
+                    <span class="loading-dots">
+                        <span>.</span>
+                        <span>.</span>
+                        <span>.</span>
+                    </span>
+
+                </div>
+
+
+                <div class="input-box">
+
+                    <textarea
+                        id="question"
+                        rows="1"
+                        placeholder="Ask EduGenie anything..."
+                    ></textarea>
+
+
+                    <button
+                        id="sendButton"
+                        class="send-button"
+                        onclick="askQuestion()"
+                        title="Send"
+                    >
+                        ➤
+                    </button>
+
+                </div>
+
+
+                <div class="input-hint">
+                    Press Enter to send • Shift + Enter for new line
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+
+    /* =====================================================
+       STATE
+    ===================================================== */
+
+    let conversationHistory = [];
+
+    let conversationId = null;
+
+
+    /* =====================================================
+       ELEMENTS
+    ===================================================== */
+
+    const questionInput =
+        document.getElementById("question");
+
+    const sendButton =
+        document.getElementById("sendButton");
+
+    const loading =
+        document.getElementById("loading");
+
+    const error =
+        document.getElementById("error");
+
+    const chatContainer =
+        document.getElementById("chatContainer");
+
+    const welcome =
+        document.getElementById("welcome");
+
+
+    /* =====================================================
+       SEND QUESTION
+    ===================================================== */
+
+    async function askQuestion() {
+
+        const question =
+            questionInput.value.trim();
+
+
+        if (!question) {
+            return;
+        }
+
+
+        const previousHistory =
+            [...conversationHistory];
+
+
+        welcome.style.display = "none";
+
+
+        addMessage(
+            "user",
+            question
+        );
+
+
+        conversationHistory.push({
+
+            role: "user",
+
+            content: question
+
+        });
+
+
+        questionInput.value = "";
+
+        autoResize();
+
+
+        sendButton.disabled = true;
+
+        loading.style.display = "block";
+
+        error.style.display = "none";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/qa",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            question: question,
+
+                            history:
+                                previousHistory,
+
+                            conversation_id:
+                                conversationId
+
+                        })
+                    }
+                );
+
+
+            const text =
+                await response.text();
+
+
+            let data;
+
+
+            try {
+
+                data =
+                    JSON.parse(text);
+
+            } catch {
+
+                throw new Error(
+                    "Server returned an invalid response."
+                );
+
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.detail ||
+                    data.error ||
+                    "Unable to get an answer."
+                );
+
+            }
+
+
+            if (data.conversation_id) {
+
+                conversationId =
+                    data.conversation_id;
+
+            }
+
+
+            if (!data.answer) {
+
+                throw new Error(
+                    "EduGenie did not return an answer."
+                );
+
+            }
+
+
+            addMessage(
+                "ai",
+                data.answer
+            );
+
+
+            conversationHistory.push({
+
+                role: "assistant",
+
+                content: data.answer
+
+            });
+
+
+            loadConversations();
+
+
+        } catch (err) {
+
+            console.error(
+                "Question error:",
+                err
+            );
+
+
+            conversationHistory.pop();
+
+
+            error.textContent =
+                err.message ||
+                "Something went wrong.";
+
+            error.style.display =
+                "block";
+
+        } finally {
+
+            sendButton.disabled = false;
+
+            loading.style.display = "none";
+
+            questionInput.focus();
+
+        }
+
+    }
+
+
+    /* =====================================================
+       ADD MESSAGE
+    ===================================================== */
+
+    function addMessage(
+        type,
+        text
+    ) {
+
+        const message =
+            document.createElement("div");
+
+
+        message.className =
+            type === "user"
+                ? "message user-message"
+                : "message";
+
+
+        const avatar =
+            document.createElement("div");
+
+
+        avatar.className =
+            type === "user"
+                ? "avatar user-avatar"
+                : "avatar ai-avatar";
+
+
+        avatar.textContent =
+            type === "user"
+                ? "You"
+                : "✦";
+
+
+        const body =
+            document.createElement("div");
+
+
+        body.className =
+            "message-body";
+
+
+        const name =
+            document.createElement("div");
+
+
+        name.className =
+            "message-name";
+
+
+        name.textContent =
+            type === "user"
+                ? "You"
+                : "EduGenie";
+
+
+        const textElement =
+            document.createElement("div");
+
+
+        textElement.className =
+            "message-text";
+
+
+        textElement.textContent =
+            text;
+
+
+        body.appendChild(name);
+
+        body.appendChild(textElement);
+
+        message.appendChild(avatar);
+
+        message.appendChild(body);
+
+        chatContainer.appendChild(message);
+
+
+        setTimeout(() => {
+
+            message.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+        }, 50);
+
+    }
+
+
+    /* =====================================================
+       LOAD CONVERSATIONS
+    ===================================================== */
+
+    async function loadConversations() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/conversations"
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Failed to load conversations"
+                );
+
+            }
+
+
+            const conversations =
+                await response.json();
+
+
+            const list =
+                document.getElementById(
+                    "conversationList"
+                );
+
+
+            list.innerHTML = "";
+
+
+            if (
+                conversations.length === 0
+            ) {
+
+                list.innerHTML = `
+
+                    <div
+                        style="
+                            color:#9ca3af;
+                            font-size:12px;
+                            padding:10px 6px;
+                        "
+                    >
+                        No conversations yet.
+                    </div>
+
+                `;
+
+                return;
+
+            }
+
+
+            conversations.forEach(
+                conversation => {
+
+                    const item =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    item.className =
+                        "history-item";
+
+
+                    if (
+                        conversation.id ===
+                        conversationId
+                    ) {
+
+                        item.classList.add(
+                            "active"
+                        );
+
+                    }
+
+
+                    const icon =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    icon.className =
+                        "history-icon";
+
+
+                    icon.textContent =
+                        "💬";
+
+
+                    const title =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    title.className =
+                        "history-title-text";
+
+
+                    title.textContent =
+                        conversation.title ||
+                        "New Conversation";
+
+
+                    const deleteButton =
+                        document.createElement(
+                            "button"
+                        );
+
+
+                    deleteButton.className =
+                        "delete-chat-button";
+
+
+                    deleteButton.innerHTML =
+                        "🗑️";
+
+
+                    deleteButton.title =
+                        "Delete chat";
+
+
+                    title.onclick =
+                        () => {
+
+                            loadConversation(
+                                conversation.id
+                            );
+
+                        };
+
+
+                    icon.onclick =
+                        () => {
+
+                            loadConversation(
+                                conversation.id
+                            );
+
+                        };
+
+
+                    deleteButton.onclick =
+                        (event) => {
+
+                            event.stopPropagation();
+
+                            deleteChat(
+                                conversation.id
+                            );
+
+                        };
+
+
+                    item.appendChild(icon);
+
+                    item.appendChild(title);
+
+                    item.appendChild(
+                        deleteButton
+                    );
+
+
+                    list.appendChild(item);
+
+                }
+            );
+
+
+        } catch (err) {
+
+            console.error(
+                "Conversation error:",
+                err
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       LOAD SINGLE CONVERSATION
+    ===================================================== */
+
+    async function loadConversation(id) {
+
+        try {
+
+            const response =
+                await fetch(
+                    `/conversations/${id}`
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Failed to load conversation"
+                );
+
+            }
+
+
+            const messages =
+                await response.json();
+
+
+            conversationId = id;
+
+            conversationHistory = [];
+
+
+            chatContainer.innerHTML = "";
+
+            welcome.style.display = "none";
+
+
+            messages.forEach(
+                message => {
+
+                    const type =
+                        message.role === "user"
+                            ? "user"
+                            : "ai";
+
+
+                    addMessage(
+                        type,
+                        message.content
+                    );
+
+
+                    conversationHistory.push({
+
+                        role:
+                            message.role,
+
+                        content:
+                            message.content
+
+                    });
+
+                }
+            );
+
+
+            loadConversations();
+
+
+            closeSidebar();
+
+
+        } catch (err) {
+
+            console.error(
+                "Could not load conversation:",
+                err
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       DELETE CHAT
+    ===================================================== */
+
+    async function deleteChat(id) {
+
+        const confirmed =
+            confirm(
+                "Are you sure you want to delete this chat?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `/conversations/${id}`,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.error ||
+                    "Failed to delete chat."
+                );
+
+            }
+
+
+            if (
+                conversationId === id
+            ) {
+
+                conversationId = null;
+
+                conversationHistory = [];
+
+                chatContainer.innerHTML = "";
+
+                welcome.style.display = "flex";
+
+            }
+
+
+            loadConversations();
+
+
+        } catch (err) {
+
+            console.error(
+                "Delete error:",
+                err
+            );
+
+
+            alert(
+                err.message ||
+                "Could not delete chat."
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       NEW CHAT
+    ===================================================== */
+
+    function startNewChat() {
+
+        conversationId = null;
+
+        conversationHistory = [];
+
+
+        chatContainer.innerHTML = "";
+
+
+        welcome.style.display = "flex";
+
+
+        error.style.display = "none";
+
+
+        questionInput.value = "";
+
+
+        loadConversations();
+
+
+        questionInput.focus();
+
+
+        closeSidebar();
+
+    }
+
+
+    /* =====================================================
+       LOGOUT
+    ===================================================== */
+
+    function logout() {
+
+        const confirmed =
+            confirm(
+                "Are you sure you want to logout?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        window.location.href =
+            "/logout";
+
+    }
+
+
+    /* =====================================================
+       SUGGESTIONS
+    ===================================================== */
+
+    function useSuggestion(text) {
+
+        questionInput.value = text;
+
+        autoResize();
+
+        questionInput.focus();
+
+    }
+
+
+    /* =====================================================
+       TEXTAREA AUTO RESIZE
+    ===================================================== */
+
+    function autoResize() {
+
+        questionInput.style.height =
+            "auto";
+
+
+        questionInput.style.height =
+            Math.min(
+                questionInput.scrollHeight,
+                180
+            ) + "px";
+
+    }
+
+
+    questionInput.addEventListener(
+        "input",
+        autoResize
+    );
+
+
+    /* =====================================================
+       ENTER KEY
+    ===================================================== */
+
+    questionInput.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                askQuestion();
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       MOBILE SIDEBAR
+    ===================================================== */
+
+    function toggleSidebar() {
+
+        document
+            .getElementById("sidebar")
+            .classList.toggle("open");
+
+    }
+
+
+    function closeSidebar() {
+
+        document
+            .getElementById("sidebar")
+            .classList.remove("open");
+
+    }
+
+
+    /* =====================================================
+       INITIAL LOAD
+    ===================================================== */
+
+    loadConversations();
+
+    questionInput.focus();
+
+</script>
+
+</body>
+
+</html>
